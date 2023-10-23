@@ -88,14 +88,28 @@ function drawAndRenderPlayerCards() {
     });
 }
 
-function startGame() {
-  initialize();
+function postBlinds() {
+  playerChips -= 1;
+  computerChips -= 2;
+  pot += 3;
+  render();
+}
+
+//starting new hand
+function startHand() {
+  postBlinds(); // decrease SMallBlind and BigBlind from players
   fetch("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
     .then((data) => data.json())
     .then(function (response) {
       deckId = response.deck_id;
       drawAndRenderPlayerCards(); // todo: refactor async-await
     });
+}
+
+// one game include one hand
+function startGame() {
+  initialize();
+  startHand();
 }
 
 function bet() {
