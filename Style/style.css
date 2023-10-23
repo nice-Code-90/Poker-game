@@ -3,6 +3,10 @@ body {
   color: whitesmoke;
 }
 
+.invisible {
+  display: none;
+}
+
 .new-game-button {
   align-items: center;
   appearance: none;
@@ -44,4 +48,8 @@ body {
 
 .new-game-button:focus:not(:active) {
   box-shadow: rgba(40, 170, 255, 0.25) 0 0 0 0.125em;
+}
+
+.bet-slider {
+  width: 65vw;
 }

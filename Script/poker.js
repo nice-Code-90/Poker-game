@@ -5,13 +5,45 @@ const playerCardsContainer = document.querySelector(
 
 const chipCountContainer = document.querySelector(".js-chip-count-container");
 const potContainer = document.querySelector(".js-pot-container");
+const betArea = document.querySelector(".js-bet-area");
+const betSlider = document.querySelector("#bet-amount");
+const betSliderValue = document.querySelector(".js-slider-value");
 
 // program state
-let deckId = null;
-let playerCards = [];
-let playerChips = 100;
-let computerChips = 100;
-let pot = 0;
+
+//using destructure array for initialize
+let { deckID, playerCards, playerChips, computerChips, pot } =
+  getInitialState();
+
+function getInitialState() {
+  return {
+    deckID: null,
+    playerCards: [],
+    playerChips: 100,
+    computerChips: 100,
+    pot: 0,
+  };
+}
+
+function initialize() {
+  ({ deckID, playerCards, playerChips, computerChips, pot } =
+    getInitialState());
+}
+
+//conditions for player bet
+function canBet() {
+  return playerCards.length === 2 && playerChips > 0 && pot === 0;
+}
+
+function renderSlider() {
+  if (canBet()) {
+    betArea.classList.remove("invisible");
+    betSlider.setAttribute("max", playerChips);
+    betSliderValue.innerText = betSlider.value;
+  } else {
+    betArea.classList.add("invisible");
+  }
+}
 
 function renderPlayerCards() {
   let html = "";
@@ -42,6 +74,7 @@ function render() {
   renderPlayerCards();
   renderChips();
   renderPot();
+  renderSlider();
 }
 
 function drawAndRenderPlayerCards() {
@@ -62,5 +95,9 @@ function startGame() {
       drawAndRenderPlayerCards(); // todo: refactor async-await
     });
 }
+
 newGameButton.addEventListener("click", startGame);
+
+betSlider.addEventListener("change", render);
+initialize();
 render();
