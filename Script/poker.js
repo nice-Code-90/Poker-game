@@ -28,7 +28,9 @@ let {
   computerCards,
   computerAction,
   playerChips,
+  playerBets, // players bid on actual round
   computerChips,
+  computerBets, // computers bid on actual round
   playerBetPlaced, // player has bet
   pot,
 } = getInitialState();
@@ -40,7 +42,9 @@ function getInitialState() {
     computerCards: [],
     computerAction: null,
     playerChips: 100,
+    playerBets: 0,
     computerChips: 100,
+    computerBets: 0,
     playerBetPlaced: false,
     pot: 0,
   };
@@ -53,7 +57,9 @@ function initialize() {
     computerCards,
     computerAction,
     playerChips,
+    playerBets,
     computerChips,
+    computerBets,
     playerBetPlaced,
     pot,
   } = getInitialState());
@@ -132,7 +138,9 @@ function drawAndRenderPlayerCards() {
 
 function postBlinds() {
   playerChips -= 1;
+  playerBets += 1;
   computerChips -= 2;
+  computerBets += 2;
   pot += 3;
   render();
 }
@@ -176,9 +184,21 @@ function computerMoveAfterBet() {
   fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`)
     .then((data) => data.json())
     .then(function (response) {
-      if (shouldComputerCall(response.cards)) {
+      if (pot === 4) {
+        computerAction = "Check";
+        computerCards = response.cards;
+      } else if (shouldComputerCall(response.cards)) {
         computerAction = "Call";
         computerCards = response.cards;
+        //player: bet (blinds + player bet)
+        //computer: 2
+        // Bet + 2 = Pot
+        // computer payet 2$ as blinds, he should call Bet - 2$
+        // Bet - 2 = Pot - 4
+        const difference = playerBets - computerBets;
+        computerChips -= difference;
+        computerBets += difference;
+        pot += difference;
       } else {
         computerAction = "Fold";
       }
@@ -192,6 +212,7 @@ function bet() {
   pot += betValue;
   playerChips -= betValue;
   playerBetPlaced = true; //player has bet: state of game changes
+  playerBets += betValue;
   render();
 
   //villains react
