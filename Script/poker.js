@@ -180,6 +180,23 @@ function shouldComputerCall(computerCards) {
   );
 }
 
+function endHand() {
+  setTimeout(() => {
+    if (computerAction === "Fold") {
+      playerChips += pot;
+      pot = 0;
+    }
+    deckID = null;
+    playerBets = 0;
+    computerBets = 0;
+    playerCards = [];
+    computerCards = [];
+    computerAction = null;
+    playerBetPlaced = false;
+    render();
+  }, 2000);
+}
+
 function computerMoveAfterBet() {
   fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`)
     .then((data) => data.json())
@@ -203,6 +220,7 @@ function computerMoveAfterBet() {
         computerAction = "Fold";
       }
       render();
+      endHand();
     });
 }
 
