@@ -1,15 +1,19 @@
 const newGameButton = document.querySelector(".js-new-game-button");
 const potContainer = document.querySelector(".js-pot-container");
-const betArea = document.querySelector(".js-bet-area");
-const betSlider = document.querySelector("#bet-amount");
-const betSliderValue = document.querySelector(".js-slider-value");
-const betButton = document.querySelector(".js-bet-button");
 
 const playerCardsContainer = document.querySelector(
   ".js-player-cards-container"
 );
 
 const playerchipContainer = document.querySelector(".js-player-chip-container");
+const betArea = document.querySelector(".js-bet-area");
+const betSlider = document.querySelector("#bet-amount");
+const betSliderValue = document.querySelector(".js-slider-value");
+const betButton = document.querySelector(".js-bet-button");
+const betPotButton = document.querySelector(".js-betpot");
+const bet25Button = document.querySelector(".js-bet25");
+const bet50Button = document.querySelector(".js-bet50");
+
 const computerCardsContainer = document.querySelector(
   ".js-computer-cards-container"
 );
@@ -90,7 +94,7 @@ function renderCardsInContainer(cards, container) {
   let html = "";
 
   for (let card of cards) {
-    html += `<img src = "${card.image}" alt="${card.code}" />`;
+    html += `<img src = "${card.image}" alt="${card.code}" class="card-image" />`;
   }
 
   container.innerHTML = html;
@@ -133,8 +137,8 @@ function render() {
 }
 
 function drawAndRenderPlayerCards() {
-  if (deckId == null) return;
-  fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`)
+  if (deckID == null) return;
+  fetch(`https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=2`)
     .then((data) => data.json())
     .then(function (response) {
       playerCards = response.cards;
@@ -157,7 +161,7 @@ function startHand() {
   fetch("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
     .then((data) => data.json())
     .then(function (response) {
-      deckId = response.deck_id;
+      deckID = response.deck_id;
       drawAndRenderPlayerCards(); // todo: refactor async-await
     });
 }
@@ -209,6 +213,7 @@ function endHand(winner = null) {
     computerCards = [];
     computerAction = null;
     playerBetPlaced = false;
+
     render();
   }, 2000);
 }
@@ -242,18 +247,17 @@ async function getWinner() {
 
 async function showdown() {
   const data = await fetch(
-    `https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=5`
+    `https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=5`
   );
   const response = await data.json();
   communityCards = response.cards;
   render();
   const winner = await getWinner();
-  console.log(winner);
   return winner;
 }
 
 function computerMoveAfterBet() {
-  fetch(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`)
+  fetch(`https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=2`)
     .then((data) => data.json())
     .then(async function (response) {
       if (pot === 4) {
@@ -263,7 +267,7 @@ function computerMoveAfterBet() {
       } else {
         computerAction = "Fold";
       }
-      if (computerAction === "call") {
+      if (computerAction === "Call") {
         //player: bet (blinds + player bet)
         //computer: 2
         // Bet + 2 = Pot
@@ -301,9 +305,30 @@ function bet() {
   computerMoveAfterBet();
 }
 
+function getPlayerPotBet() {
+  let difference = computerBets - playerBets;
+  return Math.min(playerChips, pot + difference * 2);
+}
+
+function setSliderValue(percentage) {
+  let betsize = null;
+  if (typeof percentage === "number") {
+    betsize = Math.floor((playerChips * percentage) / 100);
+  } else {
+    betsize = getPlayerPotBet();
+  }
+  betSlider.value = betsize;
+  render();
+}
+
 newGameButton.addEventListener("click", startGame);
 
-betSlider.addEventListener("change", render);
+//betSlider.addEventListener("change", render);
+betSlider.addEventListener("input", render);
+betPotButton.addEventListener("click", () => setSliderValue());
+bet25Button.addEventListener("click", () => setSliderValue(25));
+bet50Button.addEventListener("click", () => setSliderValue(50));
+
 betButton.addEventListener("click", bet);
 initialize();
 render();

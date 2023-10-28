@@ -1,6 +1,18 @@
+html {
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 body {
   background-color: black;
   color: whitesmoke;
+  min-width: 992px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(0, 30, 0, 1), rgba(0, 4, 0, 1));
 }
 
 img {
@@ -8,36 +20,6 @@ img {
 }
 .invisible {
   display: none;
-}
-
-.new-game-button {
-  align-items: center;
-  appearance: none;
-  background-color: #3eb2fd;
-  background-image: linear-gradient(1deg, #4f58fd, #149bf3 99%);
-  background-size: calc(100% + 20px) calc(100% + 20px);
-  border-radius: 100px;
-  border-width: 0;
-  box-shadow: none;
-  box-sizing: border-box;
-  color: #ffffff;
-  cursor: pointer;
-  display: inline-flex;
-  font-family: CircularStd, sans-serif;
-  font-size: 1rem;
-  height: auto;
-  justify-content: center;
-  line-height: 1.5;
-  padding: 6px 20px;
-  position: relative;
-  text-align: center;
-  text-decoration: none;
-  transition: background-color 0.2s, background-position 0.2s;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  vertical-align: top;
-  white-space: nowrap;
 }
 
 .new-game-button:active,
@@ -53,6 +35,52 @@ img {
   box-shadow: rgba(40, 170, 255, 0.25) 0 0 0 0.125em;
 }
 
+.main-area-container {
+  width: 85vw;
+  min-width: 844px;
+  margin: 2rem auto;
+}
+
+.header-container {
+  margin-left: calc(8.5vw + 4rem);
+}
+
+/* players */
+
+.players-container {
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  padding: 2rem;
+  border: 4px outset goldenrod;
+  margin: 1rem;
+
+  background-color: #05351b;
+}
+
+.player-container {
+  width: 40%;
+  height: 375px;
+}
+
+.pot-container,
+.cc-container {
+  width: calc(68vw + 2rem);
+  margin: 1rem auto;
+  min-width: 708px;
+}
+
+.cc-container {
+  min-height: calc(174px + 8px + 2rem);
+}
 .bet-slider {
-  width: 65vw;
+  width: 80%;
+
+  margin: 1rem auto 1rem 0;
+}
+
+.card-image {
+  width: 125px;
 }
