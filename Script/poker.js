@@ -136,14 +136,13 @@ function render() {
   renderActions();
 }
 
-async function drawAndRenderPlayerCards() {
+async function drawPlayerCards() {
   if (deckID == null) return;
   const data = await fetch(
     `https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=2`
   );
   const response = await data.json();
   playerCards = response.cards;
-  render();
 }
 
 function postBlinds() {
@@ -164,7 +163,8 @@ async function startHand() {
   const response = await data.json();
 
   deckID = response.deck_id;
-  drawAndRenderPlayerCards(); // todo: refactor async-await
+  await drawPlayerCards();
+  render();
 }
 
 // one game include one hand
