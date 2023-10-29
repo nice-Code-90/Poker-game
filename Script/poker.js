@@ -72,7 +72,9 @@ function initialize() {
     playerBetPlaced,
     pot,
   } = getInitialState());
+  betSlider.value = 1;
 }
+//
 
 //conditions for player bet
 function canBet() {
