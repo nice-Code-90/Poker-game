@@ -6,6 +6,9 @@ const playerCardsContainer = document.querySelector(
 );
 
 const playerchipContainer = document.querySelector(".js-player-chip-container");
+const playerStatusContainer = document.querySelector(
+  ".js-player-status-container"
+);
 const betArea = document.querySelector(".js-bet-area");
 const betSlider = document.querySelector("#bet-amount");
 const betSliderValue = document.querySelector(".js-slider-value");
@@ -20,6 +23,9 @@ const computerCardsContainer = document.querySelector(
 
 const computerchipContainer = document.querySelector(
   ".js-computer-chip-container"
+);
+const computerStatusContainer = document.querySelector(
+  ".js-computer-status-container"
 );
 const computerActionContainer = document.querySelector(".js-computer-action");
 
@@ -36,8 +42,10 @@ let {
   computerAction,
   playerChips,
   playerBets, // players bid on actual round
+  playerStatus, //player status information(won, losed, draw, folded)
   computerChips,
   computerBets, // computers bid on actual round
+  computerStatus, // computer status info
   playerBetPlaced, // player has bet
   pot,
 } = getInitialState();
@@ -51,8 +59,10 @@ function getInitialState() {
     computerAction: null,
     playerChips: 100,
     playerBets: 0,
+    playerStatus: "",
     computerChips: 100,
     computerBets: 0,
+    computerStatus: "",
     playerBetPlaced: false,
     pot: 0,
   };
@@ -67,8 +77,10 @@ function initialize() {
     communityCards,
     playerChips,
     playerBets,
+    playerStatus,
     computerChips,
     computerBets,
+    computerStatus,
     playerBetPlaced,
     pot,
   } = getInitialState());
@@ -128,6 +140,10 @@ function renderActions() {
   computerActionContainer.innerHTML = computerAction ?? ""; // ?? operator: if statement is false:
   // variable = ""
 }
+function renderStatusInfo() {
+  playerStatusContainer.innerHTML = playerStatus;
+  computerStatusContainer.innerHTML = computerStatus;
+}
 
 // rendering all datas at the same time. simplify of code > tiny speed loss
 function render() {
@@ -136,6 +152,7 @@ function render() {
   renderPot();
   renderSlider();
   renderActions();
+  renderStatusInfo();
 }
 
 async function drawPlayerCards() {
@@ -198,24 +215,17 @@ function endHand(winner = null) {
     if (computerAction === ACTIONS.Fold) {
       playerChips += pot;
       pot = 0;
-    } else if (winner === WINNER.Player) {
+    } else if (winner === STATUS.Player) {
       playerChips += pot;
       pot = 0;
-    } else if (winner === WINNER.Computer) {
+    } else if (winner === STATUS.Computer) {
       computerChips += pot;
       pot = 0;
-    } else if (winner === WINNER.Draw) {
+    } else if (winner === STATUS.Draw) {
       playerChips += playerBets;
       computerChips += computerBets;
       pot = 0;
     }
-    deckID = null;
-    playerBets = 0;
-    computerBets = 0;
-    playerCards = [];
-    computerCards = [];
-    computerAction = null;
-    playerBetPlaced = false;
 
     render();
   }, 2000);
@@ -242,9 +252,9 @@ async function getWinner() {
   if (winners.length === 2) {
     return WINNER.Draw;
   } else if (winners[0].cards === pc0) {
-    return WINNER.Player;
+    return STATUS.Player;
   } else {
-    return WINNER.Computer;
+    return STATUS.Computer;
   }
 }
 
@@ -287,9 +297,19 @@ async function computerMoveAfterBet() {
     computerCards = response.cards;
     render();
     const winner = await showdown();
-
+    if (winner === STATUS.Player) {
+      playerStatus = STATUS.Player;
+    } else if (winner === STATUS.Computer) {
+      computerStatus = STATUS.Computer;
+    } else if (winner === STATUS.Draw) {
+      computerStatus = STATUS.Draw;
+      playerStatus = STATUS.Draw;
+    }
     endHand(winner);
   } else {
+    // Computer Folded
+    playerStatus = STATUS.Player;
+
     render();
     endHand();
   }
