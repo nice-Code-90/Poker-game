@@ -48,6 +48,7 @@ let {
   computerStatus, // computer status info
   playerBetPlaced, // player has bet
   pot,
+  timeoutIds, //setTimeout ID lista
 } = getInitialState();
 
 function getInitialState() {
@@ -65,10 +66,14 @@ function getInitialState() {
     computerStatus: "",
     playerBetPlaced: false,
     pot: 0,
+    timeoutIds: [],
   };
 }
 
 function initialize() {
+  for (let id of timeoutIds) {
+    clearTimeout(id);
+  }
   ({
     deckID,
     playerCards,
@@ -83,6 +88,7 @@ function initialize() {
     computerStatus,
     playerBetPlaced,
     pot,
+    timeoutIds,
   } = getInitialState());
   betSlider.value = 1;
 }
@@ -211,7 +217,7 @@ function shouldComputerCall(computerCards) {
 }
 
 function endHand(winner = null) {
-  setTimeout(() => {
+  const id = setTimeout(() => {
     if (computerAction === ACTIONS.Fold) {
       playerChips += pot;
       pot = 0;
@@ -229,6 +235,7 @@ function endHand(winner = null) {
 
     render();
   }, 2000);
+  timeoutIds.push(id); // adding timeoutIDs to state of program
 }
 
 const SHOWDOWN_API_PREFIX = "https://api.pokerapi.dev/v1/winner/texas_holdem";
