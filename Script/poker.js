@@ -47,9 +47,12 @@ let {
   computerBets, // computers bid on actual round
   computerStatus, // computer status info
   playerBetPlaced, // player has bet
-  pot,
-  timeoutIds, //setTimeout ID lista
+  timeoutIds, //setTimeout ID list
 } = getInitialState();
+
+function getPot() {
+  return playerBets + computerBets;
+}
 
 function getInitialState() {
   return {
@@ -65,7 +68,6 @@ function getInitialState() {
     computerBets: 0,
     computerStatus: "",
     playerBetPlaced: false,
-    pot: 0,
     timeoutIds: [],
   };
 }
@@ -87,7 +89,6 @@ function initialize() {
     computerBets,
     computerStatus,
     playerBetPlaced,
-    pot,
     timeoutIds,
   } = getInitialState());
   betSlider.value = 1;
@@ -137,7 +138,7 @@ function renderChips() {
 
 function renderPot() {
   potContainer.innerHTML = `
-      <div class="chip-count">Pot: ${pot}</div>
+      <div class="chip-count">Pot: ${getPot()}</div>
 
     `;
 }
@@ -175,7 +176,6 @@ function postBlinds() {
   playerBets += 1;
   computerChips -= 2;
   computerBets += 2;
-  pot += 3;
   render();
 }
 
@@ -218,21 +218,16 @@ function shouldComputerCall(computerCards) {
 
 function endHand(winner = null) {
   const id = setTimeout(() => {
-    if (computerAction === ACTIONS.Fold) {
-      playerChips += pot;
-      pot = 0;
-    } else if (winner === STATUS.Player) {
-      playerChips += pot;
-      pot = 0;
+    if (computerAction === ACTIONS.Fold || winner === STATUS.Player) {
+      playerChips += getPot();
     } else if (winner === STATUS.Computer) {
-      computerChips += pot;
-      pot = 0;
+      computerChips += getPot();
     } else if (winner === STATUS.Draw) {
       playerChips += playerBets;
       computerChips += computerBets;
-      pot = 0;
     }
-
+    playerBets = 0;
+    computerBets = 0;
     render();
   }, 2000);
   timeoutIds.push(id); // adding timeoutIDs to state of program
@@ -281,7 +276,7 @@ async function computerMoveAfterBet() {
     `https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=2`
   );
   const response = await data.json();
-  if (pot === 4) {
+  if (getPot() === 4) {
     computerAction = ACTIONS.Check;
   } else if (shouldComputerCall(response.cards)) {
     computerAction = ACTIONS.Call;
@@ -294,10 +289,16 @@ async function computerMoveAfterBet() {
     // Bet + 2 = Pot
     // computer payet 2$ as blinds, he should call Bet - 2$
     // Bet - 2 = Pot - 4
+
     const difference = playerBets - computerBets;
     computerChips -= difference;
     computerBets += difference;
-    pot += difference;
+    if (playerBets > computerChips + computerBets) {
+      //Does computer has less chips than player-betsize?
+      let chipsToReturnToPlayer = playerBets - computerChips - computerBets; // these chips mooving back to player
+      playerBets -= chipsToReturnToPlayer; // decreasing player-bet to the amount of computerChips
+      playerChips += chipsToReturnToPlayer;
+    }
   }
 
   if (computerAction === ACTIONS.Check || ACTIONS.Call) {
@@ -323,9 +324,8 @@ async function computerMoveAfterBet() {
 }
 
 function bet() {
-  // pot + betsize
   const betValue = Number(betSlider.value);
-  pot += betValue;
+
   playerChips -= betValue;
   playerBetPlaced = true; //player has bet: state of game changes
   playerBets += betValue;
@@ -337,7 +337,7 @@ function bet() {
 
 function getPlayerPotBet() {
   let difference = computerBets - playerBets;
-  return Math.min(playerChips, pot + difference * 2);
+  return Math.min(playerChips, getPot() + difference * 2);
 }
 
 function setSliderValue(percentage) {
