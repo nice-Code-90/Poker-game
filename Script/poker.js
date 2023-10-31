@@ -82,6 +82,7 @@ function initializeHand() {
   for (let id of timeoutIds) {
     clearTimeout(id);
   }
+
   betSlider.value = 1;
 
   ({
@@ -175,16 +176,22 @@ async function drawPlayerCards() {
   playerCards = response.cards;
 }
 
+function forcedShowdown() {
+  //game state: player posted blinds
+  playerBetPlaced = true;
+  computerMoveAfterBet();
+}
+
 function postBlinds() {
-  if (computerChips === 1) {
-    computerChips = 0;
-    computerBets = 1;
+  playerChips -= 1;
+  playerBets += 1;
+  if (computerChips === 1 || playerChips === 1) {
+    computerChips -= 1;
+    computerBets += 1;
   } else {
     computerChips -= 2;
     computerBets += 2;
   }
-  playerChips -= 1;
-  playerBets += 1;
 
   render();
 }
@@ -201,6 +208,12 @@ async function startHand() {
   deckID = response.deck_id;
   await drawPlayerCards();
   render();
+  if (
+    playerChips === 0 ||
+    (computerChips === 0 && playerBets === computerBets)
+  ) {
+    forcedShowdown();
+  }
 }
 
 function startGame() {
@@ -271,7 +284,7 @@ async function getWinner() {
   const response = await data.json();
   const winners = response.winners;
   if (winners.length === 2) {
-    return WINNER.Draw;
+    return STATUS.Draw;
   } else if (winners[0].cards === pc0) {
     return STATUS.Player;
   } else {
@@ -304,7 +317,7 @@ async function computerMoveAfterBet() {
     `https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=2`
   );
   const response = await data.json();
-  if ((playerBets === 2 && computerBets === 2) || computerChips === 0) {
+  if (playerBets <= 2 || computerChips === 0) {
     computerAction = ACTIONS.Check;
   } else if (shouldComputerCall(response.cards)) {
     computerAction = ACTIONS.Call;
