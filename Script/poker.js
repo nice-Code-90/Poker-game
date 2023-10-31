@@ -1,4 +1,5 @@
 const newGameButton = document.querySelector(".js-new-game-button");
+const newHandButton = document.querySelector(".js-new-hand-button");
 const potContainer = document.querySelector(".js-pot-container");
 
 const playerCardsContainer = document.querySelector(
@@ -72,28 +73,31 @@ function getInitialState() {
   };
 }
 
-function initialize() {
+function initializeGame() {
+  ({ playerChips, computerChips } = getInitialState());
+  initializeHand();
+}
+
+function initializeHand() {
   for (let id of timeoutIds) {
     clearTimeout(id);
   }
+  betSlider.value = 1;
+
   ({
     deckID,
     playerCards,
     computerCards,
-    computerAction,
     communityCards,
-    playerChips,
+    computerAction,
     playerBets,
     playerStatus,
-    computerChips,
     computerBets,
     computerStatus,
     playerBetPlaced,
     timeoutIds,
   } = getInitialState());
-  betSlider.value = 1;
 }
-//
 
 //conditions for player bet
 function canBet() {
@@ -181,6 +185,7 @@ function postBlinds() {
 
 //starting new hand
 async function startHand() {
+  document.querySelector(".js-new-hand-button").setAttribute("disabled", true);
   postBlinds(); // decrease SMallBlind and BigBlind from players
   const data = await fetch(
     "https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1"
@@ -192,9 +197,13 @@ async function startHand() {
   render();
 }
 
-// one game include one hand
 function startGame() {
-  initialize();
+  initializeGame();
+  startHand();
+}
+
+function newHand() {
+  initializeHand();
   startHand();
 }
 
@@ -229,6 +238,9 @@ function endHand(winner = null) {
     playerBets = 0;
     computerBets = 0;
     render();
+    if (computerChips > 0 && playerChips > 0) {
+      document.querySelector(".js-new-hand-button").removeAttribute("disabled");
+    }
   }, 2000);
   timeoutIds.push(id); // adding timeoutIDs to state of program
 }
@@ -352,6 +364,7 @@ function setSliderValue(percentage) {
 }
 
 newGameButton.addEventListener("click", startGame);
+newHandButton.addEventListener("click", newHand);
 
 //betSlider.addEventListener("change", render);
 betSlider.addEventListener("input", render);
@@ -360,5 +373,5 @@ bet25Button.addEventListener("click", () => setSliderValue(25));
 bet50Button.addEventListener("click", () => setSliderValue(50));
 
 betButton.addEventListener("click", bet);
-initialize();
+initializeGame();
 render();
