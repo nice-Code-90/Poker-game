@@ -36,8 +36,8 @@ img {
 }
 
 .main-area-container {
-  width: 85vw;
-  min-width: 844px;
+  width: 90vw;
+  min-width: 992px;
   margin: 2rem auto;
 }
 

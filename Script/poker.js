@@ -17,6 +17,7 @@ const betButton = document.querySelector(".js-bet-button");
 const betPotButton = document.querySelector(".js-betpot");
 const bet25Button = document.querySelector(".js-bet25");
 const bet50Button = document.querySelector(".js-bet50");
+const foldButton = document.querySelector(".js-fold-button");
 
 const computerCardsContainer = document.querySelector(
   ".js-computer-cards-container"
@@ -245,7 +246,7 @@ function shouldComputerCall(computerCards) {
   );
 }
 
-function endHand(winner = null) {
+function endHand(winner = null, delay = 2000) {
   const id = setTimeout(() => {
     if (computerAction === ACTIONS.Fold || winner === STATUS.Player) {
       playerChips += getPot();
@@ -261,7 +262,7 @@ function endHand(winner = null) {
     if (computerChips > 0 && playerChips > 0) {
       document.querySelector(".js-new-hand-button").removeAttribute("disabled");
     }
-  }, 2000);
+  }, delay);
   timeoutIds.push(id); // adding timeoutIDs to state of program
 }
 
@@ -373,6 +374,13 @@ function bet() {
   computerMoveAfterBet();
 }
 
+function fold() {
+  //playerStatus =
+  computerStatus = STATUS.Computer;
+  playerCards = [];
+  endHand(STATUS.Computer, 0); // Computer get the pot
+}
+
 function getPlayerPotBet() {
   let difference = computerBets - playerBets;
   return Math.min(playerChips, getPot() + difference * 2);
@@ -399,5 +407,6 @@ bet25Button.addEventListener("click", () => setSliderValue(25));
 bet50Button.addEventListener("click", () => setSliderValue(50));
 
 betButton.addEventListener("click", bet);
+foldButton.addEventListener("click", fold);
 initializeGame();
 render();
