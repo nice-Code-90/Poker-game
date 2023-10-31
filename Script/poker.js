@@ -176,10 +176,16 @@ async function drawPlayerCards() {
 }
 
 function postBlinds() {
+  if (computerChips === 1) {
+    computerChips = 0;
+    computerBets = 1;
+  } else {
+    computerChips -= 2;
+    computerBets += 2;
+  }
   playerChips -= 1;
   playerBets += 1;
-  computerChips -= 2;
-  computerBets += 2;
+
   render();
 }
 
@@ -209,6 +215,7 @@ function newHand() {
 
 function shouldComputerCall(computerCards) {
   if (computerCards.length !== 2) return false;
+  if (computerChips === 0) return true; // Computer is all-in
   const card1Code = computerCards[0].code; // e.g AC, 0H ...
   const card2Code = computerCards[1].code;
   const card1Value = card1Code[0];
@@ -283,17 +290,29 @@ async function showdown() {
   return winner;
 }
 
+function returnExtraBetsFromPot() {
+  if (playerBets > computerChips + computerBets) {
+    //Does computer has less chips than player-betsize?
+    let chipsToReturnToPlayer = playerBets - computerChips - computerBets; // these chips mooving back to player
+    playerBets -= chipsToReturnToPlayer; // decreasing player-bet to the amount of computerChips
+    playerChips += chipsToReturnToPlayer;
+  }
+}
+
 async function computerMoveAfterBet() {
   const data = await fetch(
     `https://www.deckofcardsapi.com/api/deck/${deckID}/draw/?count=2`
   );
   const response = await data.json();
-  if (getPot() === 4) {
+  if ((playerBets === 2 && computerBets === 2) || computerChips === 0) {
     computerAction = ACTIONS.Check;
   } else if (shouldComputerCall(response.cards)) {
     computerAction = ACTIONS.Call;
   } else {
     computerAction = ACTIONS.Fold;
+  }
+  if (computerAction === ACTIONS.Check || computerAction === ACTIONS.Call) {
+    returnExtraBetsFromPot();
   }
   if (computerAction === ACTIONS.Call) {
     //player: bet (blinds + player bet)
@@ -305,12 +324,6 @@ async function computerMoveAfterBet() {
     const difference = playerBets - computerBets;
     computerChips -= difference;
     computerBets += difference;
-    if (playerBets > computerChips + computerBets) {
-      //Does computer has less chips than player-betsize?
-      let chipsToReturnToPlayer = playerBets - computerChips - computerBets; // these chips mooving back to player
-      playerBets -= chipsToReturnToPlayer; // decreasing player-bet to the amount of computerChips
-      playerChips += chipsToReturnToPlayer;
-    }
   }
 
   if (computerAction === ACTIONS.Check || ACTIONS.Call) {
